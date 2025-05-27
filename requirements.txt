@@ -6,4 +6,4 @@ scikit-learn
 matplotlib
 shap
 scipy
-# gunicorn # 如果完全确定不用，可以注释或删除，但保留也无害
+# gunicorn # 如果您的启动命令是 python app.py, 则 gunicorn 不是必需的
