@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XGBoost 模型分析与预测</title>
-    <!-- 引入 Bootstrap CSS 以美化页面 -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding-top: 20px; padding-bottom: 20px; font-family: 'DejaVu Sans', Arial, sans-serif; }
@@ -14,7 +13,6 @@
         .card { margin-bottom: 1.5rem; }
         .table-responsive { margin-top: 1rem; }
         .sticky-form { position: -webkit-sticky; position: sticky; top: 20px; }
-        .error-message { color: red; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -47,14 +45,12 @@
             </div>
         </div>
         
-        <!-- 如果有处理结果则显示 -->
         {% if show_results %}
         <div class="alert alert-info mt-3">
             当前处理文件: <strong>{{ filename or '未知文件' }}</strong>.
         </div>
 
         <div class="row mt-3">
-            <!-- 左侧栏：模型性能和全局SHAP -->
             <div class="col-md-7">
                 <div class="card">
                     <div class="card-header">📊 模型性能与阈值扫描</div>
@@ -93,7 +89,6 @@
                 </div>
             </div>
 
-            <!-- 右侧栏：单一样本预测表单和结果 -->
             <div class="col-md-5">
                 <div class="sticky-form">
                     <div class="card">
@@ -114,4 +109,44 @@
                                                value="{{ default_values.get(feature, '') if default_values else '' }}" required>
                                     </div>
                                     {% endfor %}
-                                    <button type="submit" class="btn
+                                    <button type="submit" class="btn btn-success btn-block">判断是否合格 + 分析原因</button>
+                                {% else %}
+                                    <p class="text-muted">请先上传并成功处理一个CSV文件以启用此功能。</p>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if show_single_pred_results and not single_pred_error %}
+                    <div class="card mt-4">
+                        <div class="card-header">📋 单一样本分析结果</div>
+                        <div class="card-body">
+                            <h5>输入参数:</h5>
+                            <div class="table-responsive">{{ single_pred_input_data_html | safe if single_pred_input_data_html else '<p class="text-muted">无输入数据。</p>' }}</div>
+                            <p><strong>预测概率 (OK类):</strong> {{ single_pred_prob or 'N/A' }}</p>
+                            <p><strong>所用分类阈值:</strong> {{ single_pred_best_thresh or 'N/A' }}</p>
+                            <p><strong>最终判断:</strong> {{ single_pred_label or 'N/A' }}</p>
+                            
+                            <h5 class="mt-3">Top 影响因子 (SHAP + 概率影响):</h5>
+                            <div class="table-responsive">{{ single_pred_shap_table_html | safe if single_pred_shap_table_html else '<p class="text-muted">SHAP 表未生成。</p>' }}</div>
+                            
+                            <h5 class="mt-3">参数贡献图 (Waterfall):</h5>
+                            {% if base64_waterfall_plot %}
+                                <img src="data:image/png;base64,{{ base64_waterfall_plot }}" alt="SHAP Waterfall 图" class="shap-plot">
+                            {% else %}
+                                <p class="text-muted">Waterfall 图未生成。</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
