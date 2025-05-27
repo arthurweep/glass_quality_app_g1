@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN"> <!-- 语言保持中文 -->
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XGBoost 模型分析与预测</title> <!-- 标题保持中文 -->
+    <title>XGBoost 模型分析与预测</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding-top: 20px; padding-bottom: 20px; font-family: 'DejaVu Sans', Arial, sans-serif; }
@@ -13,78 +13,90 @@
         .card { margin-bottom: 1.5rem; }
         .table-responsive { margin-top: 1rem; }
         .sticky-form { position: -webkit-sticky; position: sticky; top: 20px; }
+        /* 为AJAX加载添加一个简单的加载指示器样式 */
+        .loader {
+            border: 5px solid #f3f3f3; /* Light grey */
+            border-top: 5px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+            display: none; /* 初始隐藏 */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="text-center mb-4">
-            <h1>XGBoost 模型训练、分析与预测</h1> <!-- 中文 -->
-            <p class="lead">上传CSV文件进行训练, 查看性能, 并对单一样本进行预测和SHAP分析。</p> <!-- 中文 -->
+            <h1>XGBoost 模型训练、分析与预测</h1>
+            <p class="lead">上传CSV文件进行训练, 查看性能, 并对单一样本进行预测和SHAP分析。</p>
         </div>
 
         {% if error_message %}
-            <div class="alert alert-danger" role="alert">
-                {{ error_message }} <!-- 显示中文错误信息 -->
+            <div class="alert alert-danger" role="alert" id="global-error-message">
+                {{ error_message }}
             </div>
         {% endif %}
 
         <div class="card">
             <div class="card-header">
-                📁 上传训练数据 CSV 文件 <!-- 中文 -->
+                📁 上传训练数据 CSV 文件
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data" action="{{ url_for('index') }}">
                     <div class="form-group">
-                        <label for="file">请选择包含 'OK_NG' 列 (0表示不合格, 1表示合格) 以及其他数值型特征的 CSV 文件:</label> <!-- 中文 -->
+                        <label for="file">请选择包含 'OK_NG' 列 (0表示不合格, 1表示合格) 以及其他数值型特征的 CSV 文件:</label>
                         <input type="file" class="form-control-file" id="file" name="file" accept=".csv" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">上传并处理</button> <!-- 中文 -->
+                    <button type="submit" class="btn btn-primary">上传并处理</button>
                 </form>
             </div>
         </div>
         
         {% if show_results %}
         <div class="alert alert-info mt-3">
-            当前处理文件: <strong>{{ filename or '未知文件' }}</strong>. <!-- 中文 -->
+            当前处理文件: <strong>{{ filename or '未知文件' }}</strong>.
         </div>
 
         <div class="row mt-3">
             <div class="col-md-7">
                 <div class="card">
-                    <div class="card-header">📊 模型性能与阈值扫描</div> <!-- 中文 -->
+                    <div class="card-header">📊 模型性能与阈值扫描</div>
                     <div class="card-body">
                         {% if base64_perf_plot %}
-                            <img src="data:image/png;base64,{{ base64_perf_plot }}" alt="性能图" class="shap-plot"> <!-- 图形alt中文 -->
+                            <img src="data:image/png;base64,{{ base64_perf_plot }}" alt="性能图" class="shap-plot">
                         {% else %}
-                            <p class="text-muted">性能图未生成。</p> <!-- 中文 -->
+                            <p class="text-muted">性能图未生成。</p>
                         {% endif %}
-                        <h3 class="mt-3">推荐阈值与指标</h3> <!-- 中文 -->
-                        <p>{{ recommended_threshold_text | safe if recommended_threshold_text else '阈值信息未生成。' }}</p> <!-- recommended_threshold_text 来自app.py，是中文 -->
-                        
-                        <!-- best_recommendation_html 现在会显示固定阈值的说明 -->
+                        <h3 class="mt-3">推荐阈值与指标</h3>
+                        <p>{{ recommended_threshold_text | safe if recommended_threshold_text else '阈值信息未生成。' }}</p>
                         {% if best_recommendation_html %}
-                            <h4>当前阈值说明:</h4> <!-- 中文 -->
-                            <div class="table-responsive">{{ best_recommendation_html | safe }}</div> <!-- best_recommendation_html 来自app.py，是中文 -->
+                            <h4>当前阈值说明:</h4>
+                            <div class="table-responsive">{{ best_recommendation_html | safe }}</div>
                         {% endif %}
-
-                         <h4>固定阈值下的性能指标:</h4> <!-- 中文 -->
+                         <h4>固定阈值下的性能指标:</h4>
                         {% if metrics_df_html %}
-                        <div class="table-responsive"> <!-- 移除滚动条，因为只有一行 -->
+                        <div class="table-responsive">
                             {{ metrics_df_html | safe }}
                         </div>
                         {% else %}
-                            <p class="text-muted">性能指标未生成。</p> <!-- 中文 -->
+                            <p class="text-muted">性能指标未生成。</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="card mt-4">
-                    <div class="card-header">📊 全局特征重要性 (平均绝对 SHAP 值)</div> <!-- 中文 -->
+                    <div class="card-header">📊 全局特征重要性 (平均绝对 SHAP 值)</div>
                     <div class="card-body">
                         {% if base64_global_shap_plot %}
-                            <img src="data:image/png;base64,{{ base64_global_shap_plot }}" alt="全局 SHAP 图" class="shap-plot"> <!-- 图形alt中文 -->
+                            <img src="data:image/png;base64,{{ base64_global_shap_plot }}" alt="全局 SHAP 图" class="shap-plot">
                         {% else %}
-                            <p class="text-muted">全局 SHAP 图未生成。</p> <!-- 中文 -->
+                            <p class="text-muted">全局 SHAP 图未生成。</p>
                         {% endif %}
                     </div>
                 </div>
@@ -93,57 +105,53 @@
             <div class="col-md-5">
                 <div class="sticky-form">
                     <div class="card">
-                        <div class="card-header">🔍 单一样本预测与 SHAP 分析</div> <!-- 中文 -->
+                        <div class="card-header">🔍 单一样本预测与 SHAP 分析</div>
                         <div class="card-body">
-                            {% if single_pred_error %}
-                                <div class="alert alert-warning" role="alert">
-                                    {{ single_pred_error }} <!-- 显示中文错误信息 -->
-                                </div>
-                            {% endif %}
-                            <form method="post" action="{{ url_for('predict_single') }}">
+                            <!-- 修改：为表单添加 ID，用于 JavaScript 事件监听 -->
+                            <form id="predict-single-form" method="post" action="{{ url_for('predict_single_ajax') }}">
                                 {% if form_inputs %}
                                     {% for feature in form_inputs %}
                                     <div class="form-group">
-                                        <label for="{{ feature }}">{{ feature }}:</label> <!-- 特征名来自数据，可以是中文 -->
+                                        <label for="{{ feature }}">{{ feature }}:</label>
                                         <input type="number" step="any" class="form-control form-control-sm" 
-                                               id="{{ feature }}" name="{{ feature }}" 
+                                               id="feature-{{ loop.index0 }}" name="{{ feature }}" <!-- ID 可以更通用 -->
                                                value="{{ default_values.get(feature, '') if default_values else '' }}" required>
                                     </div>
                                     {% endfor %}
-                                    <button type="submit" class="btn btn-success btn-block">判断是否合格 + 分析原因</button> <!-- 中文 -->
+                                    <button type="submit" class="btn btn-success btn-block">判断是否合格 + 分析原因</button>
+                                    <div class="loader" id="prediction-loader"></div> <!-- 加载指示器 -->
                                 {% else %}
-                                    <p class="text-muted">请先上传并成功处理一个CSV文件以启用此功能。</p> <!-- 中文 -->
+                                    <p class="text-muted">请先上传并成功处理一个CSV文件以启用此功能。</p>
                                 {% endif %}
                             </form>
                         </div>
                     </div>
 
-                    {% if show_single_pred_results and not single_pred_error %}
-                    <div class="card mt-4">
-                        <div class="card-header">📋 单一样本分析结果</div> <!-- 中文 -->
+                    <!-- 修改：为显示预测结果的区域添加 ID，用于 JavaScript 更新 -->
+                    <div id="single-prediction-results-container" class="card mt-4" style="display: none;"> <!-- 初始隐藏 -->
+                        <div class="card-header">📋 单一样本分析结果</div>
                         <div class="card-body">
-                            <h5>输入参数:</h5> <!-- 中文 -->
-                            <div class="table-responsive">{{ single_pred_input_data_html | safe if single_pred_input_data_html else '<p class="text-muted">无输入数据。</p>' }}</div>
-                            <p><strong>预测概率 (OK类):</strong> {{ single_pred_prob or 'N/A' }}</p> <!-- 标签中文 -->
-                            <p><strong>所用分类阈值:</strong> {{ single_pred_best_thresh or 'N/A' }}</p> <!-- 标签中文 -->
-                            <p><strong>最终判断:</strong> {{ single_pred_label or 'N/A' }}</p> <!-- 标签中文，single_pred_label 来自app.py，是中文 -->
+                            <div id="single-pred-error-message" class="alert alert-warning" role="alert" style="display: none;"></div>
+                            <h5>输入参数:</h5>
+                            <div class="table-responsive" id="single-pred-input-data"></div>
+                            <p><strong>预测概率 (OK类):</strong> <span id="single-pred-prob">N/A</span></p>
+                            <p><strong>所用分类阈值:</strong> <span id="single-pred-threshold">{{ current_fixed_threshold | default(0.5) }}</span></p> <!-- 显示固定的阈值 -->
+                            <p><strong>最终判断:</strong> <span id="single-pred-label">N/A</span></p>
                             
-                            {% if single_pred_label and '不合格' in single_pred_label %}
-                                <h5 class="mt-3">Top 影响因子 (SHAP + 概率影响):</h5> <!-- 中文 -->
-                                <div class="table-responsive">{{ single_pred_shap_table_html | safe if single_pred_shap_table_html else '<p class="text-muted">SHAP 表未生成。</p>' }}</div>
+                            <div id="shap-analysis-content"> <!-- 包裹 SHAP 相关内容 -->
+                                <h5 class="mt-3">Top 影响因子 (SHAP + 概率影响):</h5>
+                                <div class="table-responsive" id="single-pred-shap-table"></div>
                                 
-                                <h5 class="mt-3">参数贡献图 (Waterfall):</h5> <!-- 中文 -->
-                                {% if base64_waterfall_plot %}
-                                    <img src="data:image/png;base64,{{ base64_waterfall_plot }}" alt="SHAP Waterfall 图" class="shap-plot"> <!-- 图形alt中文 -->
-                                {% else %}
-                                    <p class="text-muted">Waterfall 图未生成 (可能因为预测为合格)。</p> <!-- 中文 -->
-                                {% endif %}
-                            {% elif show_single_pred_results and single_pred_label and '合格' in single_pred_label %}
-                                <p class="mt-3 text-success">预测为合格, 不展示SHAP分析。</p> <!-- 中文 -->
-                            {% endif %}
+                                <h5 class="mt-3">参数贡献图 (Waterfall):</h5>
+                                <div id="single-pred-shap-waterfall">
+                                    <img src="" alt="SHAP Waterfall 图" class="shap-plot" style="display: none;">
+                                </div>
+                            </div>
+                             <div id="shap-pass-message" class="mt-3 text-success" style="display: none;">
+                                预测为合格, 不展示SHAP分析。
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -153,5 +161,109 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- 添加 JavaScript 用于 AJAX 提交 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const predictForm = document.getElementById('predict-single-form');
+            const resultsContainer = document.getElementById('single-prediction-results-container');
+            const loader = document.getElementById('prediction-loader');
+            
+            // 获取所有用于显示结果的元素
+            const errorDisplay = document.getElementById('single-pred-error-message');
+            const inputDataDisplay = document.getElementById('single-pred-input-data');
+            const probDisplay = document.getElementById('single-pred-prob');
+            // const thresholdDisplay = document.getElementById('single-pred-threshold'); // 这个是固定的，由模板传入
+            const labelDisplay = document.getElementById('single-pred-label');
+            const shapTableDisplay = document.getElementById('single-pred-shap-table');
+            const shapWaterfallImg = document.querySelector('#single-pred-shap-waterfall img');
+            const shapContentDiv = document.getElementById('shap-analysis-content');
+            const shapPassMessageDiv = document.getElementById('shap-pass-message');
+
+
+            if (predictForm) {
+                predictForm.addEventListener('submit', function (event) {
+                    event.preventDefault(); // 阻止表单的默认提交行为
+                    
+                    // 显示加载指示器
+                    if(loader) loader.style.display = 'block';
+                    if(errorDisplay) errorDisplay.style.display = 'none'; // 清除旧错误
+                    if(resultsContainer) resultsContainer.style.display = 'none'; // 先隐藏旧结果
+
+                    const formData = new FormData(predictForm);
+                    
+                    fetch(predictForm.action, { // predictForm.action 是 '/predict_single_ajax'
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) { // 处理 HTTP 错误状态
+                            // 尝试解析错误响应体 (如果是JSON)
+                            return response.json().then(errData => {
+                                throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+                            }).catch(() => { // 如果响应体不是JSON或解析失败
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            });
+                        }
+                        return response.json(); // 解析 JSON 响应
+                    })
+                    .then(data => {
+                        if(loader) loader.style.display = 'none'; // 隐藏加载指示器
+                        resultsContainer.style.display = 'block'; // 显示结果容器
+
+                        if (data.success) {
+                            if(errorDisplay) errorDisplay.style.display = 'none';
+                            
+                            if(inputDataDisplay) inputDataDisplay.innerHTML = data.input_data_html || '<p class="text-muted">无输入数据。</p>';
+                            if(probDisplay) probDisplay.textContent = data.prob_ok || 'N/A';
+                            // thresholdDisplay.textContent = data.threshold_used || 'N/A'; // 阈值是固定的
+                            if(labelDisplay) labelDisplay.textContent = data.label || 'N/A';
+
+                            if (data.is_ng) { // 如果是不合格
+                                if(shapContentDiv) shapContentDiv.style.display = 'block';
+                                if(shapPassMessageDiv) shapPassMessageDiv.style.display = 'none';
+
+                                if(shapTableDisplay) shapTableDisplay.innerHTML = data.shap_table_html || '<p class="text-muted">SHAP 表未生成。</p>';
+                                if (data.shap_waterfall_plot_base64) {
+                                    if(shapWaterfallImg) {
+                                        shapWaterfallImg.src = 'data:image/png;base64,' + data.shap_waterfall_plot_base64;
+                                        shapWaterfallImg.style.display = 'block';
+                                    }
+                                } else {
+                                    if(shapWaterfallImg) shapWaterfallImg.style.display = 'none';
+                                    document.querySelector('#single-pred-shap-waterfall').innerHTML = '<p class="text-muted">Waterfall 图未生成。</p>';
+                                }
+                            } else { // 如果是合格
+                                if(shapContentDiv) shapContentDiv.style.display = 'none'; // 隐藏SHAP分析内容
+                                if(shapPassMessageDiv) shapPassMessageDiv.style.display = 'block'; // 显示合格提示
+                            }
+                        } else {
+                            // 显示后端返回的错误信息
+                            if(errorDisplay) {
+                                errorDisplay.textContent = data.error || '发生未知错误。';
+                                errorDisplay.style.display = 'block';
+                            }
+                            // 可以考虑清除旧的预测结果内容
+                            if(inputDataDisplay) inputDataDisplay.innerHTML = '';
+                            if(probDisplay) probDisplay.textContent = 'N/A';
+                            if(labelDisplay) labelDisplay.textContent = 'N/A';
+                            if(shapContentDiv) shapContentDiv.style.display = 'none';
+                            if(shapPassMessageDiv) shapPassMessageDiv.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        if(loader) loader.style.display = 'none';
+                        if(resultsContainer) resultsContainer.style.display = 'block'; // 即使错误也显示容器以展示错误信息
+                        if(errorDisplay) {
+                             errorDisplay.textContent = '请求失败: ' + error.message; // 中文错误
+                             errorDisplay.style.display = 'block';
+                        }
+                        console.error('Fetch Error:', error);
+                    });
+                });
+            }
+        });
+    </script>
+
 </body>
 </html>
