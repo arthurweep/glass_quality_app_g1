@@ -6,4 +6,4 @@ scikit-learn
 matplotlib
 shap
 scipy
-gunicorn
+# gunicorn # 如果完全确定不用，可以注释或删除，但保留也无害
