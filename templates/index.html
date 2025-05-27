@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN"> <!-- 语言保持中文 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XGBoost 模型分析与预测</title>
+    <title>XGBoost 模型分析与预测</title> <!-- 标题保持中文 -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding-top: 20px; padding-bottom: 20px; font-family: 'DejaVu Sans', Arial, sans-serif; }
@@ -18,72 +18,73 @@
 <body>
     <div class="container">
         <div class="text-center mb-4">
-            <h1>XGBoost 模型训练、分析与预测</h1>
-            <p class="lead">上传CSV文件进行训练, 查看性能, 并对单一样本进行预测和SHAP分析。</p>
+            <h1>XGBoost 模型训练、分析与预测</h1> <!-- 中文 -->
+            <p class="lead">上传CSV文件进行训练, 查看性能, 并对单一样本进行预测和SHAP分析。</p> <!-- 中文 -->
         </div>
 
-        <!-- 显示全局错误信息 -->
         {% if error_message %}
             <div class="alert alert-danger" role="alert">
-                {{ error_message }}
+                {{ error_message }} <!-- 显示中文错误信息 -->
             </div>
         {% endif %}
 
-        <!-- 上传表单部分 -->
         <div class="card">
             <div class="card-header">
-                📁 上传训练数据 CSV 文件
+                📁 上传训练数据 CSV 文件 <!-- 中文 -->
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data" action="{{ url_for('index') }}">
                     <div class="form-group">
-                        <label for="file">请选择包含 'OK_NG' 列 (0表示不合格, 1表示合格) 以及其他数值型特征的 CSV 文件:</label>
+                        <label for="file">请选择包含 'OK_NG' 列 (0表示不合格, 1表示合格) 以及其他数值型特征的 CSV 文件:</label> <!-- 中文 -->
                         <input type="file" class="form-control-file" id="file" name="file" accept=".csv" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">上传并处理</button>
+                    <button type="submit" class="btn btn-primary">上传并处理</button> <!-- 中文 -->
                 </form>
             </div>
         </div>
         
         {% if show_results %}
         <div class="alert alert-info mt-3">
-            当前处理文件: <strong>{{ filename or '未知文件' }}</strong>.
+            当前处理文件: <strong>{{ filename or '未知文件' }}</strong>. <!-- 中文 -->
         </div>
 
         <div class="row mt-3">
             <div class="col-md-7">
                 <div class="card">
-                    <div class="card-header">📊 模型性能与阈值扫描</div>
+                    <div class="card-header">📊 模型性能与阈值扫描</div> <!-- 中文 -->
                     <div class="card-body">
                         {% if base64_perf_plot %}
-                            <img src="data:image/png;base64,{{ base64_perf_plot }}" alt="性能图" class="shap-plot">
+                            <img src="data:image/png;base64,{{ base64_perf_plot }}" alt="性能图" class="shap-plot"> <!-- 图形alt中文 -->
                         {% else %}
-                            <p class="text-muted">性能图未生成。</p>
+                            <p class="text-muted">性能图未生成。</p> <!-- 中文 -->
                         {% endif %}
-                        <h3 class="mt-3">推荐阈值与指标</h3>
-                        <p>{{ recommended_threshold_text | safe if recommended_threshold_text else '推荐信息未生成。' }}</p>
+                        <h3 class="mt-3">推荐阈值与指标</h3> <!-- 中文 -->
+                        <p>{{ recommended_threshold_text | safe if recommended_threshold_text else '阈值信息未生成。' }}</p> <!-- recommended_threshold_text 来自app.py，是中文 -->
+                        
+                        <!-- best_recommendation_html 现在会显示固定阈值的说明 -->
                         {% if best_recommendation_html %}
-                            <h4>最佳推荐参数详情:</h4>
-                            <div class="table-responsive">{{ best_recommendation_html | safe }}</div>
+                            <h4>当前阈值说明:</h4> <!-- 中文 -->
+                            <div class="table-responsive">{{ best_recommendation_html | safe }}</div> <!-- best_recommendation_html 来自app.py，是中文 -->
                         {% endif %}
-                         <h4>完整阈值扫描指标:</h4>
+
+                         <h4>固定阈值下的性能指标:</h4> <!-- 中文 -->
                         {% if metrics_df_html %}
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <div class="table-responsive"> <!-- 移除滚动条，因为只有一行 -->
                             {{ metrics_df_html | safe }}
                         </div>
                         {% else %}
-                            <p class="text-muted">阈值扫描指标未生成。</p>
+                            <p class="text-muted">性能指标未生成。</p> <!-- 中文 -->
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="card mt-4">
-                    <div class="card-header">📊 全局特征重要性 (平均绝对 SHAP 值)</div>
+                    <div class="card-header">📊 全局特征重要性 (平均绝对 SHAP 值)</div> <!-- 中文 -->
                     <div class="card-body">
                         {% if base64_global_shap_plot %}
-                            <img src="data:image/png;base64,{{ base64_global_shap_plot }}" alt="全局 SHAP 图" class="shap-plot">
+                            <img src="data:image/png;base64,{{ base64_global_shap_plot }}" alt="全局 SHAP 图" class="shap-plot"> <!-- 图形alt中文 -->
                         {% else %}
-                            <p class="text-muted">全局 SHAP 图未生成。</p>
+                            <p class="text-muted">全局 SHAP 图未生成。</p> <!-- 中文 -->
                         {% endif %}
                     </div>
                 </div>
@@ -92,26 +93,26 @@
             <div class="col-md-5">
                 <div class="sticky-form">
                     <div class="card">
-                        <div class="card-header">🔍 单一样本预测与 SHAP 分析</div>
+                        <div class="card-header">🔍 单一样本预测与 SHAP 分析</div> <!-- 中文 -->
                         <div class="card-body">
                             {% if single_pred_error %}
                                 <div class="alert alert-warning" role="alert">
-                                    {{ single_pred_error }}
+                                    {{ single_pred_error }} <!-- 显示中文错误信息 -->
                                 </div>
                             {% endif %}
                             <form method="post" action="{{ url_for('predict_single') }}">
                                 {% if form_inputs %}
                                     {% for feature in form_inputs %}
                                     <div class="form-group">
-                                        <label for="{{ feature }}">{{ feature }}:</label>
+                                        <label for="{{ feature }}">{{ feature }}:</label> <!-- 特征名来自数据，可以是中文 -->
                                         <input type="number" step="any" class="form-control form-control-sm" 
                                                id="{{ feature }}" name="{{ feature }}" 
                                                value="{{ default_values.get(feature, '') if default_values else '' }}" required>
                                     </div>
                                     {% endfor %}
-                                    <button type="submit" class="btn btn-success btn-block">判断是否合格 + 分析原因</button>
+                                    <button type="submit" class="btn btn-success btn-block">判断是否合格 + 分析原因</button> <!-- 中文 -->
                                 {% else %}
-                                    <p class="text-muted">请先上传并成功处理一个CSV文件以启用此功能。</p>
+                                    <p class="text-muted">请先上传并成功处理一个CSV文件以启用此功能。</p> <!-- 中文 -->
                                 {% endif %}
                             </form>
                         </div>
@@ -119,27 +120,26 @@
 
                     {% if show_single_pred_results and not single_pred_error %}
                     <div class="card mt-4">
-                        <div class="card-header">📋 单一样本分析结果</div>
+                        <div class="card-header">📋 单一样本分析结果</div> <!-- 中文 -->
                         <div class="card-body">
-                            <h5>输入参数:</h5>
+                            <h5>输入参数:</h5> <!-- 中文 -->
                             <div class="table-responsive">{{ single_pred_input_data_html | safe if single_pred_input_data_html else '<p class="text-muted">无输入数据。</p>' }}</div>
-                            <p><strong>预测概率 (OK类):</strong> {{ single_pred_prob or 'N/A' }}</p>
-                            <p><strong>所用分类阈值:</strong> {{ single_pred_best_thresh or 'N/A' }}</p>
-                            <p><strong>最终判断:</strong> {{ single_pred_label or 'N/A' }}</p>
+                            <p><strong>预测概率 (OK类):</strong> {{ single_pred_prob or 'N/A' }}</p> <!-- 标签中文 -->
+                            <p><strong>所用分类阈值:</strong> {{ single_pred_best_thresh or 'N/A' }}</p> <!-- 标签中文 -->
+                            <p><strong>最终判断:</strong> {{ single_pred_label or 'N/A' }}</p> <!-- 标签中文，single_pred_label 来自app.py，是中文 -->
                             
-                            <!-- 修改：只有在预测为不合格时才期望有SHAP图和SHAP表 -->
                             {% if single_pred_label and '不合格' in single_pred_label %}
-                                <h5 class="mt-3">Top 影响因子 (SHAP + 概率影响):</h5>
+                                <h5 class="mt-3">Top 影响因子 (SHAP + 概率影响):</h5> <!-- 中文 -->
                                 <div class="table-responsive">{{ single_pred_shap_table_html | safe if single_pred_shap_table_html else '<p class="text-muted">SHAP 表未生成。</p>' }}</div>
                                 
-                                <h5 class="mt-3">参数贡献图 (Waterfall):</h5>
+                                <h5 class="mt-3">参数贡献图 (Waterfall):</h5> <!-- 中文 -->
                                 {% if base64_waterfall_plot %}
-                                    <img src="data:image/png;base64,{{ base64_waterfall_plot }}" alt="SHAP Waterfall 图" class="shap-plot">
+                                    <img src="data:image/png;base64,{{ base64_waterfall_plot }}" alt="SHAP Waterfall 图" class="shap-plot"> <!-- 图形alt中文 -->
                                 {% else %}
-                                    <p class="text-muted">Waterfall 图未生成 (可能因为预测为合格)。</p>
+                                    <p class="text-muted">Waterfall 图未生成 (可能因为预测为合格)。</p> <!-- 中文 -->
                                 {% endif %}
-                            {% elif show_single_pred_results %} <!-- 如果是合格，可以给个提示 -->
-                                <p class="mt-3 text-success">预测为合格，不展示SHAP分析。</p>
+                            {% elif show_single_pred_results and single_pred_label and '合格' in single_pred_label %}
+                                <p class="mt-3 text-success">预测为合格, 不展示SHAP分析。</p> <!-- 中文 -->
                             {% endif %}
                         </div>
                     </div>
